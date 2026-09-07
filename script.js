@@ -40,7 +40,7 @@ async function getNews(category = "general") {
   try {
 
     const response = await fetch(
-      `https://gnews.io/api/v4/top-headlines?category=${category}&lang=en&country=in&max=10&apikey=${API_KEY}`
+    `/api/news?category=${category}`
     );
 
 
