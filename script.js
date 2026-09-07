@@ -1,5 +1,3 @@
-const API_KEY = "9d1da1f0d5879fcf79f3ce34d5b552a8";
-
 const newsContainer = document.getElementById("newsContainer");
 
 const loading = document.getElementById("loading");
@@ -40,16 +38,25 @@ async function getNews(category = "general") {
   try {
 
     const response = await fetch(
-    `/api/news?category=${category}`
+      `/api/news?category=${category}`
     );
 
 
-    if (!response.ok) {
-      throw new Error("Unable to fetch news.");
-    }
-
-
     const data = await response.json();
+
+
+    console.log("API Response:", data);
+
+
+    if (!response.ok) {
+
+      throw new Error(
+        data.errors
+          ? data.errors.join(", ")
+          : data.error || "Unable to fetch news."
+      );
+
+    }
 
 
     loading.classList.add("d-none");
@@ -67,10 +74,12 @@ async function getNews(category = "general") {
 
     errorMessage.classList.remove("d-none");
 
-    errorMessage.textContent =
-      "Failed to load news. Please check your API key or internet connection.";
 
-    console.error(error);
+    errorMessage.textContent =
+      "Failed to load news: " + error.message;
+
+
+    console.error("News Error:", error);
 
   }
 
@@ -98,9 +107,15 @@ function displayNews(articles) {
       : "https://via.placeholder.com/500x300?text=News";
 
 
-    const publishedDate = new Date(
-      article.publishedAt
-    ).toLocaleString();
+    const publishedDate = article.publishedAt
+      ? new Date(article.publishedAt).toLocaleString()
+      : "Date unavailable";
+
+
+    const sourceName =
+      article.source && article.source.name
+        ? article.source.name
+        : "Unknown Source";
 
 
     const newsCard = document.createElement("div");
@@ -116,6 +131,7 @@ function displayNews(articles) {
           src="${image}"
           class="news-image"
           alt="News Image"
+          onerror="this.src='https://via.placeholder.com/500x300?text=News'"
         />
 
         <div class="news-content">
@@ -148,7 +164,7 @@ function displayNews(articles) {
 
               <i class="bi bi-newspaper"></i>
 
-              ${article.source.name}
+              ${sourceName}
 
             </span>
 
@@ -170,10 +186,14 @@ function displayNews(articles) {
 
     newsCard.addEventListener("click", () => {
 
-      window.open(
-        article.url,
-        "_blank"
-      );
+      if (article.url) {
+
+        window.open(
+          article.url,
+          "_blank"
+        );
+
+      }
 
     });
 
@@ -193,7 +213,9 @@ function updateTime() {
   lastUpdated.innerHTML = `
 
     <strong>Last Updated:</strong>
+
     ${now.toLocaleDateString()}
+
     ${now.toLocaleTimeString()}
 
   `;
@@ -201,7 +223,8 @@ function updateTime() {
 }
 
 
-document.querySelectorAll(".category-btn")
+document
+  .querySelectorAll(".category-btn")
   .forEach((button) => {
 
     button.addEventListener("click", (event) => {
@@ -244,3 +267,4 @@ refreshBtn.addEventListener("click", () => {
 
 
 getNews();
+
